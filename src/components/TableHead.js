@@ -2,6 +2,10 @@ import React from 'react';
 import { findDOMNode } from 'react-dom';
 import classNames from 'classnames';
 import MuiTableHead from '@material-ui/core/TableHead';
+
+import Container from './dnd/Container';
+import Draggable from './dnd/Draggable';
+
 import TableHeadRow from './TableHeadRow';
 import TableHeadCell from './TableHeadCell';
 import TableSelectCell from './TableSelectCell';
@@ -27,6 +31,19 @@ class TableHead extends React.Component {
 
   handleRowSelect = () => {
     this.props.selectRowUpdate('head', null);
+  };
+
+  onDragStart = ({payload}) => {
+    const {handleLaneDragStart} = this.props;
+    handleLaneDragStart(payload.id);
+  };
+
+  onLaneDrop = ({removedIndex, addedIndex, payload}) => {
+    const {actions, handleLaneDragEnd} = this.props;
+    if (removedIndex !== addedIndex) {
+      actions.moveLane({oldIndex: removedIndex, newIndex: addedIndex});
+      handleLaneDragEnd(removedIndex, addedIndex, payload);
+    };
   };
 
   render() {
@@ -67,7 +84,19 @@ class TableHead extends React.Component {
                   toggleSort={this.handleToggleColumn}
                   hint={column.hint}
                   options={options}>
-                  {column.name}
+                    <Container
+                      orientation="horizontal"
+                      onDragStart={this.onDragStart}
+                      dragClass=""
+                      dropClass=""
+                      onDrop={this.onLaneDrop}
+                      lockAxis="x"
+                      getChildPayload={index => this.columns(index)}
+                      groupName="1">
+                      <Draggable key={index}>
+                        {column.name}
+                      </Draggable>
+                  </Container>
                 </TableHeadCell>
               )),
           )}
